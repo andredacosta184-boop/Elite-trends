@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elite Trend Marketplace Pro</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+<header class="bg-black text-white p-5">
+  <h1 class="text-3xl font-bold text-center">Elite Trend Marketplace Pro</h1>
+  <p class="text-center">Multi-seller marketplace with approvals and seller accounts</p>
+</header>
+
+<div class="max-w-7xl mx-auto p-4">
+
+<div class="bg-white p-4 rounded shadow mb-6">
+<h2 class="text-xl font-bold mb-3">Seller Registration</h2>
+<input id="sellerName" class="border p-2 w-full mb-2" placeholder="Seller Name">
+<input id="sellerPhone" class="border p-2 w-full mb-2" placeholder="WhatsApp Number">
+<button onclick="registerSeller()" class="bg-black text-white px-4 py-2 rounded">Create Seller Account</button>
+</div>
+
+<div class="bg-white p-4 rounded shadow mb-6">
+<h2 class="text-xl font-bold mb-3">Create Listing</h2>
+<input id="title" class="border p-2 w-full mb-2" placeholder="Item Title">
+<input id="price" class="border p-2 w-full mb-2" placeholder="Price">
+<input id="image" class="border p-2 w-full mb-2" placeholder="Image URL">
+<textarea id="desc" class="border p-2 w-full mb-2" placeholder="Description"></textarea>
+<select id="sellerSelect" class="border p-2 w-full mb-2"></select>
+
+<p class="text-sm mb-2">Listing Fee Status</p>
+<select id="feePaid" class="border p-2 w-full mb-2">
+<option value="No">Not Paid</option>
+<option value="Yes">Paid</option>
+</select>
+
+<button onclick="submitListing()" class="bg-blue-600 text-white px-4 py-2 rounded">Submit Listing</button>
+</div>
+
+<div class="bg-white p-4 rounded shadow mb-6">
+<h2 class="text-xl font-bold mb-3">Admin Dashboard</h2>
+<p class="text-sm mb-2">Approve listings after payment is verified.</p>
+<div id="adminListings"></div>
+</div>
+
+<h2 class="text-2xl font-bold mb-4">Marketplace</h2>
+<div id="marketplace" class="grid md:grid-cols-3 gap-4"></div>
+
+</div>
+
+<script>
+let sellers = JSON.parse(localStorage.getItem("sellers") || "[]");
+let listings = JSON.parse(localStorage.getItem("listings") || "[]");
+
+function save(){
+ localStorage.setItem("sellers",JSON.stringify(sellers));
+ localStorage.setItem("listings",JSON.stringify(listings));
+}
+
+function registerSeller(){
+ const name=document.getElementById("sellerName").value;
+ const phone=document.getElementById("sellerPhone").value;
+ if(!name||!phone){alert("Complete all fields");return;}
+ sellers.push({name,phone});
+ save();
+ loadSellerDropdown();
+ alert("Seller account created");
+}
+
+function loadSellerDropdown(){
+ const s=document.getElementById("sellerSelect");
+ s.innerHTML="";
+ sellers.forEach((seller,i)=>{
+   s.innerHTML+=`<option value="${i}">${seller.name}</option>`;
+ });
+}
+
+function submitListing(){
+ if(sellers.length===0){alert("Create seller account first");return;}
+ const seller=sellers[document.getElementById("sellerSelect").value];
+ listings.push({
+   title:title.value,
+   price:price.value,
+   image:image.value||"https://via.placeholder.com/300x200",
+   desc:desc.value,
+   seller:seller.name,
+   phone:seller.phone,
+   feePaid:feePaid.value,
+   approved:false
+ });
+ save();
+ renderAdmin();
+ alert("Listing submitted for approval");
+}
+
+function approve(i){
+ listings[i].approved=true;
+ save();
+ renderAdmin();
+ renderMarket();
+}
+
+function renderAdmin(){
+ const div=document.getElementById("adminListings");
+ div.innerHTML="";
+ listings.forEach((l,i)=>{
+   div.innerHTML += `
+   <div class="border p-2 mb-2">
+   <b>${l.title}</b> | Fee Paid: ${l.feePaid} | Approved: ${l.approved}
+   <button onclick="approve(${i})" class="bg-green-600 text-white px-2 py-1 rounded ml-2">
+   Approve
+   </button>
+   </div>`;
+ });
+}
+
+function renderMarket(){
+ const div=document.getElementById("marketplace");
+ div.innerHTML="";
+ listings.filter(x=>x.approved).forEach(l=>{
+ div.innerHTML += `
+ <div class="bg-white rounded shadow p-3">
+ <img src="${l.image}" class="w-full rounded mb-2">
+ <h3 class="font-bold text-xl">${l.title}</h3>
+ <p>${l.price}</p>
+ <p>${l.desc}</p>
+ <p class="text-sm mt-2">Seller: ${l.seller}</p>
+ <a target="_blank"
+ href="https://wa.me/${l.phone.replace(/\D/g,'')}"
+ class="inline-block mt-3 bg-green-600 text-white px-3 py-2 rounded">
+ Contact Seller
+ </a>
+ </div>`;
+ });
+}
+
+loadSellerDropdown();
+renderAdmin();
+renderMarket();
+</script>
+</body>
+</html>
